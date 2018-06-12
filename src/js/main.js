@@ -1,9 +1,11 @@
-var App = {
+/*var App = {
   Views: {},
   Utils: window.Utils
-};
+};*/
 
 (function (module, Utils) {
+  var EVENT_OPEN = 'modalOpen';
+  var EVENT_CLOSE = 'modalClose';
   var ModalView = module.ModalView = function (options) {
     options = options || {};
     this.rootElement = Utils.getRootElementFromTemplate(options.template);
@@ -27,21 +29,39 @@ var App = {
     active: 'isActive'
   };
   
+  ModalView.prototype.dispatch = function (eventType) {
+    var event = new CustomEvent(eventType, {
+      bubbles: true
+    });
+    
+    event.currentModal = this;
+    
+    this.rootElement.dispatchEvent(event);
+    
+    return this;
+  };
+  
+  ModalView.EVENT_OPEN = EVENT_OPEN;
+  ModalView.EVENT_CLOSE = EVENT_CLOSE;
+  
   ModalView.prototype.show = function () {
     this.rootElement.classList.add(this.classNames.active);
+    this.dispatch(EVENT_OPEN);
     return this;
   };
   
   ModalView.prototype.hide = function () {
     this.rootElement.classList.remove(this.classNames.active);
+    this.dispatch(EVENT_CLOSE);
     return this;
   };
   
   ModalView.prototype.canHide = function (event) {
     return this.modalClose.contains(event.target) ||
-      event.target.contains(this.rootElement) ||
+      (event.type === 'click' && event.target.contains(this.rootElement)) ||
       event.key === 'Escape' ||
-      event.target.hasAttribute('data-modal-hide');
+      event.target.hasAttribute('data-modal-hide') ||
+      event.currentModal !== this;
   };
   
   ModalView.prototype.handleModalClose = function () {
@@ -54,6 +74,7 @@ var App = {
   ModalView.prototype.delegateEvents = function () {
     this.rootElement.addEventListener('click', this.handleModalClose);
     document.addEventListener('keydown', this.handleModalClose);
+    document.addEventListener(EVENT_OPEN, this.handleModalClose);
     return this;
   };
   
@@ -71,4 +92,4 @@ var App = {
   ModalView.prototype.render = function () {
     return this.collectChildNode().updateContent().delegateEvents();
   };
-})(App.Views, window.Utils);
+})(window, window.Utils);

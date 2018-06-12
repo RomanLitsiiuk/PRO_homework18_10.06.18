@@ -25,12 +25,13 @@
   </template>
   <script>
     var modalTemplate = document.querySelector('#modalTemplate').innerHTML;
+    var modalList = [];
     for (var i = 0; i < 5; i++) {
-      var modal = new App.Views.ModalView({
+      modalList.push(new ModalView({
         template: modalTemplate,
         title: 'Info' + i,
         content: 'Some content' + i
-      }).render().appendTo(document.body).show();
+      }).render().appendTo(document.body).show());
     }
   </script>
 </body>
